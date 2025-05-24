@@ -2,11 +2,15 @@ package com.carocart.productservice.controller;
 
 import com.carocart.productservice.entity.Product;
 import com.carocart.productservice.service.ProductService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -17,20 +21,40 @@ public class ProductController {
     @Autowired
     private ProductService productService;
 
-    // 🟢 Admin: Add a product
-    @PostMapping("/admin/add")
-    public ResponseEntity<Product> addProduct(@RequestBody Product product,
-                                              @RequestHeader("Authorization") String token) {
+    @Autowired
+    private ObjectMapper objectMapper;  // For JSON to Object conversion
+
+    // 🟢 Admin: Add a product with image upload (multipart)
+    @PostMapping(value = "/admin/add", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Product> addProduct(@RequestPart("product") String productJson,
+                                              @RequestPart(value = "image", required = false) MultipartFile image,
+                                              @RequestHeader("Authorization") String token) throws IOException {
+
+        // Convert JSON string to Product object
+        Product product = objectMapper.readValue(productJson, Product.class);
+
+        if (image != null && !image.isEmpty()) {
+            product.setImage(image.getBytes());
+        }
+
         Product saved = productService.addProduct(product, token);
         return ResponseEntity.ok(saved);
     }
 
-    // 🟢 Admin: Update a product
-    @PutMapping("/admin/update/{id}")
+    // 🟢 Admin: Update a product with optional image update
+    @PutMapping(value = "/admin/update/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateProduct(@PathVariable Long id,
-                                           @RequestBody Product product,
-                                           @RequestHeader("Authorization") String token) {
-        Product updated = productService.updateProduct(id, product, token);
+                                           @RequestPart("product") String productJson,
+                                           @RequestPart(value = "image", required = false) MultipartFile image,
+                                           @RequestHeader("Authorization") String token) throws IOException {
+
+        Product updatedProduct = objectMapper.readValue(productJson, Product.class);
+
+        if (image != null && !image.isEmpty()) {
+            updatedProduct.setImage(image.getBytes());
+        }
+
+        Product updated = productService.updateProduct(id, updatedProduct, token);
         if (updated == null) {
             return ResponseEntity.notFound().build();
         }
@@ -51,6 +75,19 @@ public class ProductController {
         List<Product> products = productService.getAllProducts();
         return ResponseEntity.ok(products);
     }
+    
+    @GetMapping("/image/{id}")
+    public ResponseEntity<byte[]> getProductImage(@PathVariable Long id) {
+        Product product = productService.getProductById(id);
+        if (product == null || product.getImage() == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok()
+            .contentType(MediaType.IMAGE_JPEG)  // or detect actual type
+            .body(product.getImage());
+    }
+
 
     // 🟢 User: Get product by ID
     @GetMapping("/{id}")
@@ -61,4 +98,10 @@ public class ProductController {
         }
         return ResponseEntity.ok(product);
     }
+    
+    @GetMapping("/subcategory/{subCategoryId}")
+    public ResponseEntity<List<Product>> getProductsBySubCategory(@PathVariable Long subCategoryId) {
+        return ResponseEntity.ok(productService.getProductsBySubCategory(subCategoryId));
+    }
+
 }

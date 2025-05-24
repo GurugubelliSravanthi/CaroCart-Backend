@@ -10,4 +10,6 @@ public interface ProductService {
     Product getProductById(Long id);
     Product updateProduct(Long id, Product product, String token);
     void deleteProduct(Long id, String token);
+
+    List<Product> getProductsBySubCategory(Long subCategoryId);
 }
