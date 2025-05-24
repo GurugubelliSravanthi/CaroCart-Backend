@@ -1,7 +1,8 @@
 package com.carocart.productservice.entity;
 
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -12,49 +13,36 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Product name is required")
     private String name;
-
-    @NotBlank(message = "Description is required")
-    @Size(max = 1000, message = "Description must be at most 1000 characters")
-    @Column(length = 1000)
     private String description;
-
-    @NotBlank(message = "Brand is required")
     private String brand;
-
-    @NotBlank(message = "Category is required")
-    private String category;
-
-    @NotNull(message = "Price is required")
-    @PositiveOrZero(message = "Price must be zero or positive")
-    private Double price;
-
-    @NotNull(message = "MRP is required")
-    @Positive(message = "MRP must be positive")
-    private Double mrp;
-
-    @NotNull(message = "Discount is required")
-    @Min(value = 0, message = "Discount cannot be negative")
-    @Max(value = 100, message = "Discount cannot exceed 100")
-    private Double discount;
-
-    @NotNull(message = "Stock is required")
-    @Min(value = 0, message = "Stock must be zero or more")
-    private Integer stock;
-
-    @NotBlank(message = "Unit is required")
+    private double price;
+    private double mrp;
+    private double discount;
+    private int stock;
     private String unit;
+    private Boolean isAvailable;
+    
+    @Lob
+    @Column(name = "image", columnDefinition = "LONGBLOB")
+    private byte[] image;
 
-    @NotBlank(message = "Image URL is required")
-    private String imageUrl;
 
-    @NotNull
-    private Boolean isAvailable = true;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @ManyToOne
+    @JoinColumn(name = "sub_category_id")
+    @JsonIgnoreProperties("products")  // Ignore 'products' inside subCategory to avoid recursion
+    private SubCategory subCategory;
+    
+    public byte[] getImage() {
+        return image;
+    }
 
-    private LocalDateTime updatedAt = LocalDateTime.now();
+    public void setImage(byte[] image) {
+        this.image = image;
+    }
 
 	public Long getId() {
 		return id;
@@ -88,43 +76,35 @@ public class Product {
 		this.brand = brand;
 	}
 
-	public String getCategory() {
-		return category;
-	}
-
-	public void setCategory(String category) {
-		this.category = category;
-	}
-
-	public Double getPrice() {
+	public double getPrice() {
 		return price;
 	}
 
-	public void setPrice(Double price) {
+	public void setPrice(double price) {
 		this.price = price;
 	}
 
-	public Double getMrp() {
+	public double getMrp() {
 		return mrp;
 	}
 
-	public void setMrp(Double mrp) {
+	public void setMrp(double mrp) {
 		this.mrp = mrp;
 	}
 
-	public Double getDiscount() {
+	public double getDiscount() {
 		return discount;
 	}
 
-	public void setDiscount(Double discount) {
+	public void setDiscount(double discount) {
 		this.discount = discount;
 	}
 
-	public Integer getStock() {
+	public int getStock() {
 		return stock;
 	}
 
-	public void setStock(Integer stock) {
+	public void setStock(int stock) {
 		this.stock = stock;
 	}
 
@@ -134,14 +114,6 @@ public class Product {
 
 	public void setUnit(String unit) {
 		this.unit = unit;
-	}
-
-	public String getImageUrl() {
-		return imageUrl;
-	}
-
-	public void setImageUrl(String imageUrl) {
-		this.imageUrl = imageUrl;
 	}
 
 	public Boolean getIsAvailable() {
@@ -168,8 +140,14 @@ public class Product {
 		this.updatedAt = updatedAt;
 	}
 
-    // Getters and Setters
-    // (Same as what you already have)
+	public SubCategory getSubCategory() {
+		return subCategory;
+	}
+
+	public void setSubCategory(SubCategory subCategory) {
+		this.subCategory = subCategory;
+	}
+
     
-    
+    // Getters and setters
 }

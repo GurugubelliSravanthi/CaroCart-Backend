@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class ProductServiceImpl implements ProductService {
@@ -21,30 +20,15 @@ public class ProductServiceImpl implements ProductService {
     @Autowired
     private AdminClient adminClient;
 
-    // Helper method to validate if admin response is valid and has ADMIN role
     private boolean isAdmin(AdminResponseDTO admin) {
         return admin != null && "ADMIN".equals(admin.getRole());
     }
 
-    // Validate admin using token
     private void validateAdmin(String token) {
         AdminResponseDTO admin = adminClient.getCurrentAdmin(token);
         if (!isAdmin(admin)) {
             throw new RuntimeException("Unauthorized: Admin role required");
         }
-    }
-
-    @Override
-    public Product addProduct(Product product, String token) {
-        AdminResponseDTO admin = adminClient.getCurrentAdmin(token);
-
-        if (!isAdmin(admin)) {
-            throw new RuntimeException("Unauthorized: Admin role required");
-        }
-
-        product.setCreatedAt(LocalDateTime.now());
-        product.setUpdatedAt(LocalDateTime.now());
-        return productRepository.save(product);
     }
 
     @Override
@@ -58,31 +42,50 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public void deleteProduct(Long id, String token) {
+        validateAdmin(token);
+        productRepository.deleteById(id);
+    }
+
+    @Override
+    public Product addProduct(Product product, String token) {
+        validateAdmin(token);
+
+        if (product.getSubCategory() == null) {
+            throw new RuntimeException("SubCategory must be provided");
+        }
+
+        product.setCreatedAt(LocalDateTime.now());
+        product.setUpdatedAt(LocalDateTime.now());
+        return productRepository.save(product);
+    }
+
+    @Override
     public Product updateProduct(Long id, Product updatedProduct, String token) {
         validateAdmin(token);
-        Optional<Product> optionalProduct = productRepository.findById(id);
-        if (optionalProduct.isPresent()) {
-            Product product = optionalProduct.get();
+
+        return productRepository.findById(id).map(product -> {
             product.setName(updatedProduct.getName());
             product.setDescription(updatedProduct.getDescription());
             product.setBrand(updatedProduct.getBrand());
-            product.setCategory(updatedProduct.getCategory());
             product.setPrice(updatedProduct.getPrice());
             product.setMrp(updatedProduct.getMrp());
             product.setDiscount(updatedProduct.getDiscount());
             product.setStock(updatedProduct.getStock());
             product.setUnit(updatedProduct.getUnit());
-            product.setImageUrl(updatedProduct.getImageUrl());
             product.setIsAvailable(updatedProduct.getIsAvailable());
             product.setUpdatedAt(LocalDateTime.now());
+            product.setSubCategory(updatedProduct.getSubCategory());
+
+            if (updatedProduct.getImage() != null && updatedProduct.getImage().length > 0) {
+                product.setImage(updatedProduct.getImage());
+            }
             return productRepository.save(product);
-        }
-        return null;
+        }).orElse(null);
     }
 
     @Override
-    public void deleteProduct(Long id, String token) {
-        validateAdmin(token);
-        productRepository.deleteById(id);
+    public List<Product> getProductsBySubCategory(Long subCategoryId) {
+        return productRepository.findBySubCategoryId(subCategoryId);
     }
 }
