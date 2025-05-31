@@ -1,6 +1,7 @@
 package com.carocart.productservice.service;
 
 import com.carocart.productservice.dto.AdminResponseDTO;
+import com.carocart.productservice.dto.ProductDTO;
 import com.carocart.productservice.entity.Product;
 import com.carocart.productservice.feign.AdminClient;
 import com.carocart.productservice.repository.ProductRepository;
@@ -87,5 +88,26 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<Product> getProductsBySubCategory(Long subCategoryId) {
         return productRepository.findBySubCategoryId(subCategoryId);
+    }
+    
+    @Override
+    public ProductDTO getProductDTOById(Long id) {
+        Product product = productRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Product not found"));
+
+        // Generate image URL or path
+        String imageUrl = "/api/images/" + product.getId(); // You can change this as per your image serving strategy
+
+        // Map to ProductDTO including stock and availability
+        ProductDTO productDTO = new ProductDTO();
+        productDTO.setId(product.getId());
+        productDTO.setName(product.getName());
+        productDTO.setDescription(product.getDescription());
+        productDTO.setPrice(product.getPrice());
+        productDTO.setImageUrl(imageUrl);
+        productDTO.setStock(product.getStock());
+        productDTO.setIsAvailable(Boolean.TRUE.equals(product.getIsAvailable()));
+
+        return productDTO;
     }
 }

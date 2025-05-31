@@ -1,5 +1,6 @@
 package com.carocart.authentication.controller;
 
+import com.carocart.authentication.dto.UserDTO;
 import com.carocart.authentication.entity.User;
 import com.carocart.authentication.service.UserService;
 import com.carocart.authentication.util.JwtUtil;
@@ -20,7 +21,7 @@ public class UserController {
     private UserService userService;
 
     @Autowired
-    private JwtUtil jwtUtil;  // Inject JwtUtil to extract info from token
+    private JwtUtil jwtUtil;
 
     @PostMapping("/signup")
     public ResponseEntity<String> signup(@RequestBody User user) {
@@ -41,7 +42,7 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         }
     }
-    
+
     @GetMapping("/profile")
     public ResponseEntity<User> getProfile(@RequestHeader("Authorization") String authorizationHeader) {
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
@@ -67,11 +68,30 @@ public class UserController {
         }
         return ResponseEntity.badRequest().body("Update failed");
     }
-    
+
     @GetMapping("/admin/users/all")
     public ResponseEntity<List<User>> getAllUsers() {
         List<User> users = userService.getAllUsers();
         return ResponseEntity.ok(users);
     }
 
+    // ✅ New endpoint to support CartService Feign call
+    @GetMapping("/me")
+    public ResponseEntity<UserDTO> getCurrentUser(@RequestHeader("Authorization") String authorizationHeader) {
+        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String token = authorizationHeader.substring(7);
+        String email = jwtUtil.extractUsername(token);
+        Optional<User> userOptional = userService.findByEmail(email);
+
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            UserDTO userDTO = new UserDTO(user.getId(), user.getEmail(), user.getRole());
+            return ResponseEntity.ok(userDTO);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
 }

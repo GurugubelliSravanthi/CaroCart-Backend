@@ -1,5 +1,6 @@
 package com.carocart.productservice.controller;
 
+import com.carocart.productservice.dto.ProductDTO;
 import com.carocart.productservice.entity.Product;
 import com.carocart.productservice.service.ProductService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -103,5 +104,13 @@ public class ProductController {
     public ResponseEntity<List<Product>> getProductsBySubCategory(@PathVariable Long subCategoryId) {
         return ResponseEntity.ok(productService.getProductsBySubCategory(subCategoryId));
     }
+    
+
+    @GetMapping("/dto/{id}")
+    public ResponseEntity<ProductDTO> getProductDTOById(@PathVariable Long id) {
+        ProductDTO dto = productService.getProductDTOById(id);
+        return ResponseEntity.ok(dto);
+    }
+
 
 }
