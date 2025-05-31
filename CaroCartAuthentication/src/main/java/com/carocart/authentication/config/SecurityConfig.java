@@ -32,6 +32,7 @@ public class SecurityConfig {
                     "/vendors/signup",
                     "/vendors/login"
                 ).permitAll()
+                .requestMatchers("/admins/me").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class) // ✅ Register the JWT filter
