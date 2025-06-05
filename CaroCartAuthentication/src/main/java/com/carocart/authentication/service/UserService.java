@@ -43,8 +43,13 @@ public class UserService {
             throw new IllegalArgumentException("Invalid email or password");
         }
 
-        // ✅ Generate JWT token with role "USER"
-        return jwtUtil.generateToken(email, "USER");
+        // ✅ Generate JWT token with email, role, firstName, lastName
+        return jwtUtil.generateToken(
+                user.getEmail(),
+                "USER", // or user.getRole() if dynamic
+                user.getFirstName(),
+                user.getLastName()
+        );
     }
     
     public Optional<User> findByEmail(String email) {

@@ -82,8 +82,12 @@ public class VendorService {
             throw new IllegalStateException("Vendor not approved yet");
         }
 
-        // ✅ Include role = "VENDOR" in the token
-        return jwtUtil.generateToken(email, "VENDOR");
+        return jwtUtil.generateToken(
+                vendor.getEmail(),
+                "VENDOR", // or user.getRole() if dynamic
+                vendor.getFirstName(),
+                vendor.getLastName()
+        );
     }
 
     // Step 4: Admin approval of vendor
