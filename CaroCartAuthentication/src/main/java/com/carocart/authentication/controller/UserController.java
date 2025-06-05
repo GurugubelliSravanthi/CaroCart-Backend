@@ -28,6 +28,9 @@ public class UserController {
     
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private OtpEmailService otpEmailService;
 
     @PostMapping("/signup")
     public ResponseEntity<String> signup(@RequestBody User user) {
@@ -101,8 +104,7 @@ public class UserController {
         }
     }
     
-    @Autowired
-    private OtpEmailService otpEmailService;
+
 
     // ✅ Step 1: Request OTP for password reset
     @PostMapping("/forgot-password")
