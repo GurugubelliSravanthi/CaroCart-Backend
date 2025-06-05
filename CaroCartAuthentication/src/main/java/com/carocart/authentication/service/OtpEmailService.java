@@ -45,8 +45,8 @@ public class OtpEmailService {
     public void sendOtpEmail(String toEmail, String otp) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(toEmail);
-        message.setSubject("Verify Your Email for CaroCart Vendor Signup");
-        message.setText("Dear Vendor,\n\n"
+        message.setSubject("Verify Your Email for CaroCart User Signup");
+        message.setText("Dear User,\n\n"
                 + "Your One-Time Password (OTP) for CaroCart signup is: " + otp + "\n\n"
                 + "This OTP is valid for 5 minutes. Please do not share this OTP with anyone.\n\n"
                 + "Thank you,\nCaroCart Team");
@@ -64,4 +64,5 @@ public class OtpEmailService {
                 + "Thank you,\nCaroCart Team");
         mailSender.send(message);
     }
+ 
 }
