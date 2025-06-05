@@ -46,7 +46,7 @@ public class UserService {
 
         return jwtUtil.generateToken(
                 user.getEmail(),
-                "VENDOR", // or user.getRole() if dynamic
+                "USER", // or user.getRole() if dynamic
                 user.getFirstName(),
                 user.getLastName()
         );

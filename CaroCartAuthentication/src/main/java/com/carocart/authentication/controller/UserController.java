@@ -26,7 +26,7 @@ public class UserController {
     @Autowired
     private JwtUtil jwtUtil;
     
-//    @Autowired
+    @Autowired
     private UserRepository userRepository;
     
     @Autowired
