@@ -2,10 +2,13 @@ package com.carocart.authentication.controller;
 
 import com.carocart.authentication.dto.UserDTO;
 import com.carocart.authentication.entity.User;
+import com.carocart.authentication.repository.UserRepository;
+import com.carocart.authentication.service.OtpEmailService;
 import com.carocart.authentication.service.UserService;
 import com.carocart.authentication.util.JwtUtil;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +25,12 @@ public class UserController {
 
     @Autowired
     private JwtUtil jwtUtil;
+    
+    @Autowired
+    private UserRepository userRepository;
+    
+    @Autowired
+    private OtpEmailService otpEmailService;
 
     @PostMapping("/signup")
     public ResponseEntity<String> signup(@RequestBody User user) {
@@ -94,4 +103,48 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
+    
+
+
+    // ✅ Step 1: Request OTP for password reset
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        if (!userRepository.findByEmail(email).isPresent()) {
+            return ResponseEntity.badRequest().body("Email not registered");
+        }
+        
+        String otp = otpEmailService.generateOtp();
+        otpEmailService.storeOtp(email, otp);
+        otpEmailService.sendOtpEmail(email, otp);
+        
+        return ResponseEntity.ok("OTP sent to email");
+    }
+
+    // ✅ Step 2: Verify OTP
+    @PostMapping("/verify-otp")
+    public ResponseEntity<String> verifyOtp(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        String otp = request.get("otp");
+        boolean isValid = otpEmailService.validateOtp(email, otp);
+        if (isValid) {
+            otpEmailService.removeOtp(email); // Clear OTP after verification
+            return ResponseEntity.ok("OTP verified");
+        } else {
+            return ResponseEntity.badRequest().body("Invalid OTP");
+        }
+    }
+
+    // ✅ Step 3: Reset password after OTP verification
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        String newPassword = request.get("newPassword"); {
+        boolean success = userService.updatePassword(email, newPassword);
+        return success ?
+                ResponseEntity.ok("Password updated successfully") :
+                ResponseEntity.badRequest().body("Failed to update password");
+    }
+    
+   }
 }
