@@ -63,6 +63,17 @@ public class UserService {
         }
         return false;
     }
+    public boolean updatePassword(String email, String newPassword) {
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            user.setPassword(passwordEncoder.encode(newPassword)); // ✅ Encrypt new password
+            userRepository.save(user);
+            return true;
+        }
+        return false;
+    }
+
     
     public List<User> getAllUsers() {
         return userRepository.findAll();
