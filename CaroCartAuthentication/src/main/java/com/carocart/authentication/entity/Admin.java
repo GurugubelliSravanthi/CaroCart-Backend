@@ -10,6 +10,9 @@ public class Admin {
     private Long id;
 
     private String username;
+    
+    private String firstName;
+    private String lastName;
 
     @Column(unique = true, nullable = false)
     private String email;
@@ -35,4 +38,16 @@ public class Admin {
 
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
+	public String getFirstName() {
+		return firstName;
+	}
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
+	}
+	public String getLastName() {
+		return lastName;
+	}
+	public void setLastName(String lastName) {
+		this.lastName = lastName;
+	}
 }

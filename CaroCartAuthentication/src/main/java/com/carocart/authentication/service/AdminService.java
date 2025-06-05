@@ -47,8 +47,12 @@ public class AdminService {
             return "Invalid credentials";
         }
 
-        // Generate JWT token with role
-        return jwtUtil.generateToken(admin.getEmail(), "ADMIN");
+        return jwtUtil.generateToken(
+                admin.getEmail(),
+                "ADMIN", // or user.getRole() if dynamic
+                admin.getFirstName(),
+                admin.getLastName()
+        );
     }
     
     public Admin findByEmail(String email) {
