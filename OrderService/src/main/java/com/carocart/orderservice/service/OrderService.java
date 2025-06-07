@@ -10,4 +10,10 @@ public interface OrderService {
     List<OrderResponse> getOrdersForUser(String token);
     OrderResponse getOrderById(String token, Long orderId);
     void cancelOrder(String token, Long orderId);
+    
+ // Admin-specific methods
+    List<OrderResponse> getAllOrders();
+    OrderResponse getOrderByIdForAdmin(Long orderId);
+    void cancelOrderByAdmin(Long orderId);
+
 }

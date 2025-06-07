@@ -109,4 +109,34 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus("CANCELLED");
         orderRepository.save(order);
     }
+    
+    @Override
+    public List<OrderResponse> getAllOrders() {
+        List<Order> orders = orderRepository.findAll();
+        return orders.stream().map(OrderResponse::new).collect(Collectors.toList());
+    }
+
+    @Override
+    public OrderResponse getOrderByIdForAdmin(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found."));
+        return new OrderResponse(order);
+    }
+
+    @Override
+    public void cancelOrderByAdmin(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found."));
+
+        if ("CANCELLED".equalsIgnoreCase(order.getStatus()) || 
+            "CANCELLED BY ADMIN".equalsIgnoreCase(order.getStatus())) {
+            throw new RuntimeException("Order is already cancelled.");
+        }
+
+        order.setStatus("CANCELLED BY ADMIN");
+        // order.setUpdatedAt(LocalDateTime.now()); // not needed, handled by @PreUpdate
+        orderRepository.save(order);
+    }
+
+
 }

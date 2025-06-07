@@ -3,6 +3,9 @@ package com.carocart.orderservice.controller;
 import com.carocart.orderservice.dto.OrderRequest;
 import com.carocart.orderservice.dto.OrderResponse;
 import com.carocart.orderservice.service.OrderService;
+
+import jakarta.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -45,5 +48,30 @@ public class OrderController {
                                               @RequestHeader("Authorization") String token) {
         orderService.cancelOrder(token, orderId);
         return ResponseEntity.ok("Order cancelled successfully.");
+    }
+    
+ // --- ADMIN FUNCTIONALITY ---
+    @GetMapping("/admin/orders")
+    public ResponseEntity<List<OrderResponse>> getAllOrdersForAdmin() {
+        List<OrderResponse> orders = orderService.getAllOrders();
+        return ResponseEntity.ok(orders);
+    }
+
+    @GetMapping("/admin/orders/{orderId}")
+    public ResponseEntity<OrderResponse> getOrderByIdForAdmin(@PathVariable Long orderId) {
+        OrderResponse order = orderService.getOrderByIdForAdmin(orderId);
+        return ResponseEntity.ok(order);
+    }
+
+    @PutMapping("/admin/orders/{orderId}/cancel")
+    public ResponseEntity<String> cancelOrderByAdmin(@PathVariable Long orderId) {
+        orderService.cancelOrderByAdmin(orderId);
+        return ResponseEntity.ok("Order cancelled by Admin successfully.");
+    }
+    
+    @GetMapping("/debug/token")
+    public ResponseEntity<String> debugToken(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        return ResponseEntity.ok("Authorization header = " + authHeader);
     }
 }
