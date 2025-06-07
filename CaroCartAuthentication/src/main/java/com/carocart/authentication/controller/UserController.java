@@ -7,14 +7,18 @@ import com.carocart.authentication.service.OtpEmailService;
 import com.carocart.authentication.service.UserService;
 import com.carocart.authentication.util.JwtUtil;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/users")
@@ -147,4 +151,77 @@ public class UserController {
     }
     
    }
+    @PostMapping("/profile/upload-image")
+    public ResponseEntity<String> uploadProfileImage(
+            @RequestParam("profileImage") MultipartFile file, // Changed to match frontend
+            @RequestHeader("Authorization") String authHeader) {
+        
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
+        }
+
+        String token = authHeader.substring(7);
+        String email = jwtUtil.extractUsername(token);
+
+        try {
+            // Validate file
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest().body("Please select a file to upload");
+            }
+
+            // Check file size (e.g., limit to 2MB)
+            long maxSize = 2 * 1024 * 1024; // 2MB
+            if (file.getSize() > maxSize) {
+                return ResponseEntity.badRequest()
+                    .body("File size exceeds the 2MB limit");
+            }
+
+            // Check content type
+            String contentType = file.getContentType();
+            if (contentType == null || 
+                !(contentType.equals("image/jpeg") || 
+                 contentType.equals("image/png") ||
+                 contentType.equals("image/gif"))) {
+                return ResponseEntity.badRequest()
+                    .body("Only JPEG, PNG, or GIF images are allowed");
+            }
+
+            Optional<User> userOpt = userService.findByEmail(email);
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            User user = userOpt.get();
+            user.setProfileImage(file.getBytes());
+            userRepository.save(user);
+            
+            return ResponseEntity.ok("Profile image updated successfully");
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Failed to process image: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("An error occurred: " + e.getMessage());
+        }
+    }
+    @GetMapping("/profile/image")
+    public ResponseEntity<byte[]> getProfileImage(@RequestHeader("Authorization") String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String token = authHeader.substring(7);
+        String email = jwtUtil.extractUsername(token);
+
+        Optional<User> userOpt = userService.findByEmail(email);
+        if (userOpt.isEmpty() || userOpt.get().getProfileImage() == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        byte[] image = userOpt.get().getProfileImage();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.IMAGE_JPEG); // Or detect type dynamically
+        return new ResponseEntity<>(image, headers, HttpStatus.OK);
+    }
+
 }
