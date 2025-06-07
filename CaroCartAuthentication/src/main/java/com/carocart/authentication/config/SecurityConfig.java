@@ -33,6 +33,7 @@ public class SecurityConfig {
                     "/vendors/login"
                 ).permitAll()
                 .requestMatchers("/admins/me").hasRole("ADMIN")
+                .requestMatchers("/users/profile/upload-image").authenticated()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
