@@ -40,7 +40,7 @@ public class OrderController {
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/{orderId}")
+    @DeleteMapping("/cancel/{orderId}")
     public ResponseEntity<String> cancelOrder(@PathVariable Long orderId,
                                               @RequestHeader("Authorization") String token) {
         orderService.cancelOrder(token, orderId);
