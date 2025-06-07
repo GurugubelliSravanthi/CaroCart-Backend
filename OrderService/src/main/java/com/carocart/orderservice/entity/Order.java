@@ -1,7 +1,5 @@
 package com.carocart.orderservice.entity;
 
-//package: com.carocart.orderservice.entity
-
 import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import java.time.LocalDateTime;
@@ -11,93 +9,115 @@ import java.util.List;
 @Table(name = "orders")
 public class Order {
 
- @Id
- @GeneratedValue(strategy = GenerationType.IDENTITY)
- private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
- private Long userId; // user placing the order
+    private Long userId; // user placing the order
 
- private LocalDateTime orderDate;
+    private LocalDateTime orderDate;
 
- private String status; // e.g. PLACED, PROCESSING, SHIPPED, DELIVERED, CANCELLED
+    private String status; // e.g. PLACED, PROCESSING, SHIPPED, DELIVERED, CANCELLED
 
- private Double totalAmount;
+    private Double totalAmount;
 
- @Column(length = 1000)
- private String shippingAddress; // can store as JSON string or simple text
+    @Column(length = 1000)
+    private String shippingAddress; // can store as JSON string or simple text
 
- private String paymentStatus; // PENDING, PAID, FAILED (optional)
+    private String paymentStatus; // PENDING, PAID, FAILED (optional)
 
- @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
- @JsonManagedReference
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JsonManagedReference
+    private List<OrderItem> orderItems;
 
- private List<OrderItem> orderItems;
+    private LocalDateTime updatedAt;
 
-public Long getId() {
-	return id;
-}
+    // --- Getters and Setters ---
 
-public void setId(Long id) {
-	this.id = id;
-}
+    public Long getId() {
+        return id;
+    }
 
-public Long getUserId() {
-	return userId;
-}
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-public void setUserId(Long userId) {
-	this.userId = userId;
-}
+    public Long getUserId() {
+        return userId;
+    }
 
-public LocalDateTime getOrderDate() {
-	return orderDate;
-}
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
 
-public void setOrderDate(LocalDateTime orderDate) {
-	this.orderDate = orderDate;
-}
+    public LocalDateTime getOrderDate() {
+        return orderDate;
+    }
 
-public String getStatus() {
-	return status;
-}
+    public void setOrderDate(LocalDateTime orderDate) {
+        this.orderDate = orderDate;
+    }
 
-public void setStatus(String status) {
-	this.status = status;
-}
+    public String getStatus() {
+        return status;
+    }
 
-public Double getTotalAmount() {
-	return totalAmount;
-}
+    public void setStatus(String status) {
+        this.status = status;
+    }
 
-public void setTotalAmount(Double totalAmount) {
-	this.totalAmount = totalAmount;
-}
+    public Double getTotalAmount() {
+        return totalAmount;
+    }
 
-public String getShippingAddress() {
-	return shippingAddress;
-}
+    public void setTotalAmount(Double totalAmount) {
+        this.totalAmount = totalAmount;
+    }
 
-public void setShippingAddress(String shippingAddress) {
-	this.shippingAddress = shippingAddress;
-}
+    public String getShippingAddress() {
+        return shippingAddress;
+    }
 
-public String getPaymentStatus() {
-	return paymentStatus;
-}
+    public void setShippingAddress(String shippingAddress) {
+        this.shippingAddress = shippingAddress;
+    }
 
-public void setPaymentStatus(String paymentStatus) {
-	this.paymentStatus = paymentStatus;
-}
+    public String getPaymentStatus() {
+        return paymentStatus;
+    }
 
-public List<OrderItem> getOrderItems() {
-	return orderItems;
-}
+    public void setPaymentStatus(String paymentStatus) {
+        this.paymentStatus = paymentStatus;
+    }
 
-public void setOrderItems(List<OrderItem> orderItems) {
-	this.orderItems = orderItems;
-}
+    public List<OrderItem> getOrderItems() {
+        return orderItems;
+    }
 
- // getters and setters
- 
- 
+    public void setOrderItems(List<OrderItem> orderItems) {
+        this.orderItems = orderItems;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    // --- JPA Lifecycle Callbacks ---
+
+    @PrePersist
+    public void onCreate() {
+        if (this.orderDate == null) {
+            this.orderDate = LocalDateTime.now();
+        }
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    public void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 }
