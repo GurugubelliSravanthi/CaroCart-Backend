@@ -25,6 +25,12 @@ public class SecurityConfig {
             .cors(Customizer.withDefaults())
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
+                    // ✅ More specific patterns FIRST
+                    .requestMatchers("/users/profile/upload-image").authenticated()
+                    .requestMatchers("/users/profile/image").authenticated()
+                    .requestMatchers("/users/profile").authenticated()
+                    .requestMatchers("/users/me").authenticated()
+            .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                     "/admins/signup",
                     "/admins/login",
