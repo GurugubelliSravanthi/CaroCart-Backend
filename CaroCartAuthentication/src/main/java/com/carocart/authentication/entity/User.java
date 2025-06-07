@@ -21,6 +21,10 @@ public class User {
     // ✅ Add this
     @Column(nullable = false)
     private String role = "USER";  // Default role
+    
+    @Lob
+    @Column(name = "profile_image", columnDefinition = "LONGBLOB")
+    private byte[] profileImage;
 
     // Getters and setters
     public Long getId() { return id; }
@@ -40,4 +44,11 @@ public class User {
 
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
+	public byte[] getProfileImage() {
+		return profileImage;
+	}
+	public void setProfileImage(byte[] profileImage) {
+		this.profileImage = profileImage;
+	}
+    
 }

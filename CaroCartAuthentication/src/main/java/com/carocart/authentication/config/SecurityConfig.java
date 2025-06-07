@@ -25,6 +25,12 @@ public class SecurityConfig {
             .cors(Customizer.withDefaults())
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
+                    // ✅ More specific patterns FIRST
+                    .requestMatchers("/users/profile/upload-image").authenticated()
+                    .requestMatchers("/users/profile/image").authenticated()
+                    .requestMatchers("/users/profile").authenticated()
+                    .requestMatchers("/users/me").authenticated()
+            .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                     "/admins/signup",
                     "/admins/login",
@@ -33,6 +39,7 @@ public class SecurityConfig {
                     "/vendors/login"
                 ).permitAll()
                 .requestMatchers("/admins/me").hasRole("ADMIN")
+                .requestMatchers("/users/profile/upload-image").authenticated()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
