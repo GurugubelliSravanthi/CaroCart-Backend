@@ -33,10 +33,13 @@ public class SecurityConfig {
                     "/users/signup",
                     "/vendors/signup",
                     "/vendors/login"
+                    
                 ).permitAll()
 
                 // Admin-specific route
                 .requestMatchers("/admins/me").hasRole("ADMIN")
+                .requestMatchers("/users/admin/users/all").hasRole("ADMIN")
+                .requestMatchers("/users/admin/users/{id}").hasRole("ADMIN")
 
                 // Authenticated user routes
                 .requestMatchers(
