@@ -18,7 +18,6 @@
         <module>OrderService</module>
         <module>CartService</module>
         <module>PaymentService</module>
-
         <module>CaroCartAddress</module>
     </modules>
     
