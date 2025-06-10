@@ -62,6 +62,8 @@ public class UserService {
             User user = userOpt.get();
             user.setFirstName(updatedUser.getFirstName());
             user.setLastName(updatedUser.getLastName());
+            user.setDob(updatedUser.getDob());
+            user.setPhoneNumber(updatedUser.getPhoneNumber());
             // update other editable fields as needed
             userRepository.save(user);
             return true;
