@@ -16,6 +16,8 @@
         <module>CaroCartServer</module>
         <module>CartService</module>
         <model>OrderService</model>
+        <module>CartService</module>
+        <module>PaymentService</module>
     </modules>
     
     <properties>

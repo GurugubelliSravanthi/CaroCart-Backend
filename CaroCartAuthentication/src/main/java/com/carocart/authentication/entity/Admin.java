@@ -10,7 +10,6 @@ public class Admin {
     private Long id;
 
     private String username;
-    
     private String firstName;
     private String lastName;
 
@@ -21,7 +20,12 @@ public class Admin {
     private String password;
 
     @Column(nullable = false)
-    private String role = "ADMIN"; // default value, can be adjusted
+    private String role = "ADMIN"; // default value
+
+    // Add profile image field
+    @Lob
+    @Column(name = "profile_image")
+    private byte[] profileImage;
 
     // Getters and Setters
     public Long getId() { return id; }
@@ -38,16 +42,14 @@ public class Admin {
 
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
-	public String getFirstName() {
-		return firstName;
-	}
-	public void setFirstName(String firstName) {
-		this.firstName = firstName;
-	}
-	public String getLastName() {
-		return lastName;
-	}
-	public void setLastName(String lastName) {
-		this.lastName = lastName;
-	}
+
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+
+    public String getLastName() { return lastName; }
+    public void setLastName(String lastName) { this.lastName = lastName; }
+
+    // Profile image getter and setter
+    public byte[] getProfileImage() { return profileImage; }
+    public void setProfileImage(byte[] profileImage) { this.profileImage = profileImage; }
 }
