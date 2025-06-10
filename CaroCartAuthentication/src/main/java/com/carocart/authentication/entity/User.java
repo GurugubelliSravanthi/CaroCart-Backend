@@ -1,5 +1,8 @@
 package com.carocart.authentication.entity;
 
+import java.time.LocalDate;
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -17,6 +20,9 @@ public class User {
 
     @Column(nullable = false)
     private String password;
+    
+    private String phoneNumber;
+    private LocalDate dob; // Make sure to format it as "yyyy-MM-dd"
 
     // ✅ Add this
     @Column(nullable = false)
@@ -27,8 +33,21 @@ public class User {
     private byte[] profileImage;
 
     // Getters and setters
+    
     public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public String getPhoneNumber() {
+		return phoneNumber;
+	}
+	public void setPhoneNumber(String phoneNumber) {
+		this.phoneNumber = phoneNumber;
+	}
+	public LocalDate getDob() {
+		return dob;
+	}
+	public void setDob(LocalDate dob) {
+		this.dob = dob;
+	}
+	public void setId(Long id) { this.id = id; }
 
     public String getFirstName() { return firstName; }
     public void setFirstName(String firstName) { this.firstName = firstName; }

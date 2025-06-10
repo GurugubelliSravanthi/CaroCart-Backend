@@ -88,6 +88,31 @@ public class UserController {
         List<User> users = userService.getAllUsers();
         return ResponseEntity.ok(users);
     }
+//    
+    @PutMapping("/admin/users/{id}")
+    public ResponseEntity<String> updateUserByAdmin(@PathVariable Long id, @RequestBody User updatedUser) {
+        Optional<User> userOpt = userRepository.findById(id);
+        if (userOpt.isEmpty()) return ResponseEntity.notFound().build();
+
+        User user = userOpt.get();
+        user.setFirstName(updatedUser.getFirstName());
+        user.setLastName(updatedUser.getLastName());
+        user.setEmail(updatedUser.getEmail());
+        user.setRole(updatedUser.getRole());
+        userRepository.save(user);
+
+        return ResponseEntity.ok("User updated successfully");
+    }
+
+    @DeleteMapping("/admin/users/{id}")
+    public ResponseEntity<String> deleteUser(@PathVariable Long id) {
+        if (!userRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        userRepository.deleteById(id);
+        return ResponseEntity.ok("User deleted successfully");
+    }
+//
 
     // ✅ New endpoint to support CartService Feign call
     @GetMapping("/me")
@@ -223,5 +248,7 @@ public class UserController {
         headers.setContentType(MediaType.IMAGE_JPEG); // Or detect type dynamically
         return new ResponseEntity<>(image, headers, HttpStatus.OK);
     }
+    
+    
 
 }
