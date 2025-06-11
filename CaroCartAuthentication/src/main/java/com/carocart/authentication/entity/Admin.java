@@ -24,7 +24,7 @@ public class Admin {
 
     // Add profile image field
     @Lob
-    @Column(name = "profile_image")
+    @Column(name = "profile_image", columnDefinition = "LONGBLOB")
     private byte[] profileImage;
 
     // Getters and Setters
