@@ -22,6 +22,10 @@ public class Product {
     private int stock;
     private String unit;
     private Boolean isAvailable;
+    private String addedByRole; // "ADMIN" or "VENDOR"
+    private Long addedById;
+    private String vendorName; // Set if added by vendor
+
     
     @Lob
     @Column(name = "image", columnDefinition = "LONGBLOB")
@@ -36,7 +40,33 @@ public class Product {
     @JsonIgnoreProperties("products")  // Ignore 'products' inside subCategory to avoid recursion
     private SubCategory subCategory;
     
-    public byte[] getImage() {
+    
+    
+    public String getAddedByRole() {
+		return addedByRole;
+	}
+
+	public void setAddedByRole(String addedByRole) {
+		this.addedByRole = addedByRole;
+	}
+
+	public Long getAddedById() {
+		return addedById;
+	}
+
+	public void setAddedById(Long addedById) {
+		this.addedById = addedById;
+	}
+
+	public String getVendorName() {
+		return vendorName;
+	}
+
+	public void setVendorName(String vendorName) {
+		this.vendorName = vendorName;
+	}
+
+	public byte[] getImage() {
         return image;
     }
 

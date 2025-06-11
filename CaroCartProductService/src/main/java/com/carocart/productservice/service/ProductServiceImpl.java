@@ -2,8 +2,10 @@ package com.carocart.productservice.service;
 
 import com.carocart.productservice.dto.AdminResponseDTO;
 import com.carocart.productservice.dto.ProductDTO;
+import com.carocart.productservice.dto.VendorDTO;
 import com.carocart.productservice.entity.Product;
 import com.carocart.productservice.feign.AdminClient;
+import com.carocart.productservice.feign.VendorClient;
 import com.carocart.productservice.repository.ProductRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +13,12 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+
 
 @Service
 public class ProductServiceImpl implements ProductService {
@@ -21,8 +29,31 @@ public class ProductServiceImpl implements ProductService {
     @Autowired
     private AdminClient adminClient;
 
+    @Autowired
+    private VendorClient vendorClient;
+
     private boolean isAdmin(AdminResponseDTO admin) {
         return admin != null && "ADMIN".equals(admin.getRole());
+    }
+
+    private boolean isVendor(VendorDTO vendor) {
+        return vendor != null && "VENDOR".equals(vendor.getRole());
+    }
+
+    private AdminResponseDTO tryGetAdmin(String token) {
+        try {
+            return adminClient.getCurrentAdmin(token);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private VendorDTO tryGetVendor(String token) {
+        try {
+            return vendorClient.getCurrentVendor(token);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private void validateAdmin(String token) {
@@ -44,13 +75,39 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public void deleteProduct(Long id, String token) {
-        validateAdmin(token);
+        AdminResponseDTO admin = tryGetAdmin(token);
+        VendorDTO vendor = tryGetVendor(token);
+
+        Product product = productRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Product not found"));
+
+        boolean isOwner = isAdmin(admin)
+            || (isVendor(vendor) && "VENDOR".equals(product.getAddedByRole())
+            && vendor.getId().equals(product.getAddedById()));
+
+        if (!isOwner) {
+            throw new RuntimeException("Unauthorized: Not allowed to delete this product");
+        }
+
         productRepository.deleteById(id);
     }
 
     @Override
     public Product addProduct(Product product, String token) {
-        validateAdmin(token);
+        AdminResponseDTO admin = tryGetAdmin(token);
+        VendorDTO vendor = tryGetVendor(token);
+
+        if (isAdmin(admin)) {
+            product.setAddedByRole("ADMIN");
+            product.setAddedById(admin.getId());
+            product.setVendorName(null); // Not needed
+        } else if (isVendor(vendor)) {
+            product.setAddedByRole("VENDOR");
+            product.setAddedById(vendor.getId());
+            product.setVendorName(vendor.getFullName());
+        } else {
+            throw new RuntimeException("Unauthorized: Only admin or vendor can add products");
+        }
 
         if (product.getSubCategory() == null) {
             throw new RuntimeException("SubCategory must be provided");
@@ -63,9 +120,18 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Product updateProduct(Long id, Product updatedProduct, String token) {
-        validateAdmin(token);
+        AdminResponseDTO admin = tryGetAdmin(token);
+        VendorDTO vendor = tryGetVendor(token);
 
         return productRepository.findById(id).map(product -> {
+            boolean isOwner = isAdmin(admin)
+                || (isVendor(vendor) && "VENDOR".equals(product.getAddedByRole())
+                && vendor.getId().equals(product.getAddedById()));
+
+            if (!isOwner) {
+                throw new RuntimeException("Unauthorized: Not allowed to update this product");
+            }
+
             product.setName(updatedProduct.getName());
             product.setDescription(updatedProduct.getDescription());
             product.setBrand(updatedProduct.getBrand());
@@ -81,6 +147,7 @@ public class ProductServiceImpl implements ProductService {
             if (updatedProduct.getImage() != null && updatedProduct.getImage().length > 0) {
                 product.setImage(updatedProduct.getImage());
             }
+
             return productRepository.save(product);
         }).orElse(null);
     }
@@ -89,25 +156,38 @@ public class ProductServiceImpl implements ProductService {
     public List<Product> getProductsBySubCategory(Long subCategoryId) {
         return productRepository.findBySubCategoryId(subCategoryId);
     }
-    
+
     @Override
     public ProductDTO getProductDTOById(Long id) {
         Product product = productRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Product not found"));
 
-        // Generate image URL or path
-        String imageUrl = "/api/images/" + product.getId(); // You can change this as per your image serving strategy
+        String imageUrl = "/products/image/" + product.getId();
 
-        // Map to ProductDTO including stock and availability
-        ProductDTO productDTO = new ProductDTO();
-        productDTO.setId(product.getId());
-        productDTO.setName(product.getName());
-        productDTO.setDescription(product.getDescription());
-        productDTO.setPrice(product.getPrice());
-        productDTO.setImageUrl(imageUrl);
-        productDTO.setStock(product.getStock());
-        productDTO.setIsAvailable(Boolean.TRUE.equals(product.getIsAvailable()));
+        ProductDTO dto = new ProductDTO();
+        dto.setId(product.getId());
+        dto.setName(product.getName());
+        dto.setDescription(product.getDescription());
+        dto.setPrice(product.getPrice());
+        dto.setImageUrl(imageUrl);
+        dto.setStock(product.getStock());
+        dto.setIsAvailable(Boolean.TRUE.equals(product.getIsAvailable()));
 
-        return productDTO;
+        return dto;
     }
+
+    @Override
+    public List<Product> getProductsByVendor(String token) {
+        VendorDTO vendor = tryGetVendor(token);
+        if (!isVendor(vendor)) {
+            throw new RuntimeException("Unauthorized: Only vendors can access this.");
+        }
+
+        return productRepository.findByAddedByRoleAndAddedById("VENDOR", vendor.getId());
+    }
+    
+    public Page<Product> getAllProducts(Pageable pageable) {
+        return productRepository.findAll(pageable);
+    }
+
 }

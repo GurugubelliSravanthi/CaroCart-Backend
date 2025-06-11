@@ -31,7 +31,7 @@ public class SecurityConfig {
                     "/admins/login",
                     "/users/login",
                     "/users/signup",
-                    "/vendors/signup",
+                    "/vendors/signup/**",
                     "/vendors/login"
                     
                 ).permitAll()
@@ -56,6 +56,8 @@ public class SecurityConfig {
                     "/users/profile",
                     "/users/me"
                 ).authenticated()
+                
+                .requestMatchers("/vendors/me").authenticated()
 
                 // Everything else
                 .anyRequest().authenticated()
