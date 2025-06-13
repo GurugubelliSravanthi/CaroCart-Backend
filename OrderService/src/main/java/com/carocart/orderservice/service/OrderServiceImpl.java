@@ -137,6 +137,17 @@ public class OrderServiceImpl implements OrderService {
         // order.setUpdatedAt(LocalDateTime.now()); // not needed, handled by @PreUpdate
         orderRepository.save(order);
     }
+    
+    @Override
+    public void updatePaymentStatus(Long orderId, String paymentId, String status) {
+        Order order = orderRepository.findById(orderId)
+            .orElseThrow(() -> new RuntimeException("Order not found"));
 
+        order.setPaymentStatus(status);
+        order.setPaymentId(paymentId); // Add this field if not present in your entity
+
+        orderRepository.save(order);
+    }
+    
 
 }

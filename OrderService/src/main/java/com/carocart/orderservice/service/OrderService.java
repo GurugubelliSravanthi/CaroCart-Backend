@@ -15,5 +15,6 @@ public interface OrderService {
     List<OrderResponse> getAllOrders();
     OrderResponse getOrderByIdForAdmin(Long orderId);
     void cancelOrderByAdmin(Long orderId);
+	void updatePaymentStatus(Long orderId, String paymentId, String status);
 
 }
