@@ -26,6 +26,10 @@ public class Order {
 
     private String paymentStatus; // PENDING, PAID, FAILED (optional)
 
+    @Column(name = "payment_id")
+    private String paymentId;
+
+    
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JsonManagedReference
     private List<OrderItem> orderItems;
@@ -120,4 +124,14 @@ public class Order {
     public void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
+	public String getPaymentId() {
+		return paymentId;
+	}
+
+	public void setPaymentId(String paymentId) {
+		this.paymentId = paymentId;
+	}
+
+
 }
