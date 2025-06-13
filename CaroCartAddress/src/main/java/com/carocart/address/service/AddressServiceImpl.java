@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 public class AddressServiceImpl implements AddressService {
 
     private final AddressRepository repository;
+    
     private final UserClient userClient;
 
     public AddressServiceImpl(AddressRepository repository, UserClient userClient) {
@@ -90,7 +91,7 @@ public class AddressServiceImpl implements AddressService {
     }
 
     @Override
-    public List<AddressResponseDTO> getAllAddressesByUserId(String userId) {
+    public List<AddressResponseDTO> getAllAddressesByUserId(Long userId) {
         List<Address> addresses = repository.findByUserId(userId);
         List<AddressResponseDTO> response = new ArrayList<>();
         for (Address address : addresses) {
@@ -105,9 +106,17 @@ public class AddressServiceImpl implements AddressService {
                 .orElseThrow(() -> new RuntimeException("Address not found"));
         return mapToDTO(address);
     }
+    
+    @Override
+    public List<AddressResponseDTO> getAddressesForCurrentUser(String token) {
+        UserResponseDTO user = userClient.getCurrentUser(token);
+        List<Address> addresses = repository.findByUserId(user.getId());
 
-	public AddressResponseDTO createAddress(AddressRequestDTO dto) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+        List<AddressResponseDTO> response = new ArrayList<>();
+        for (Address address : addresses) {
+            response.add(mapToDTO(address));
+        }
+        return response;
+    }
+
 }

@@ -15,7 +15,9 @@ public interface AddressService {
     void deleteAddress(Long id);
 
     // Still uses userId directly (useful for admin or dashboard views)
-    List<AddressResponseDTO> getAllAddressesByUserId(String userId);
+    List<AddressResponseDTO> getAllAddressesByUserId(Long userId);
 
     AddressResponseDTO getAddressById(Long id);
+
+	List<AddressResponseDTO> getAddressesForCurrentUser(String token);
 }

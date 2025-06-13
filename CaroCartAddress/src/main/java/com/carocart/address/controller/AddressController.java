@@ -40,7 +40,7 @@ public class AddressController {
 
     // ✅ Get all addresses for a user (could be admin use)
     @GetMapping("/user/{userId}")
-    public List<AddressResponseDTO> getAllByUser(@PathVariable String userId) {
+    public List<AddressResponseDTO> getAllByUser(@PathVariable Long userId) {
         return service.getAllAddressesByUserId(userId);
     }
 
@@ -49,4 +49,11 @@ public class AddressController {
     public AddressResponseDTO getOne(@PathVariable Long id) {
         return service.getAddressById(id);
     }
+    
+    @GetMapping("/me")
+    public List<AddressResponseDTO> getMyAddresses(@RequestHeader("Authorization") String token) {
+        return service.getAddressesForCurrentUser(token);
+    }
+
+
 }

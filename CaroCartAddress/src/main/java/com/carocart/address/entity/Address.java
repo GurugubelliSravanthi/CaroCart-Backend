@@ -12,7 +12,7 @@ public class Address {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String userId;
+    private Long userId;
     private String fullName;
     private String phoneNumber;
     private String alternatePhone;
@@ -46,14 +46,8 @@ public class Address {
 	public void setId(Long id) {
 		this.id = id;
 	}
-
-	public String getUserId() {
-		return userId;
-	}
-
-	public void setUserId(String userId) {
-		this.userId = userId;
-	}
+	
+	
 
 	public String getFullName() {
 		return fullName;
@@ -165,5 +159,13 @@ public class Address {
 
 	public void setUpdatedAt(LocalDateTime updatedAt) {
 		this.updatedAt = updatedAt;
+	}
+
+	public Long getUserId() {
+		return userId;
+	}
+
+	public void setUserId(Long userId) {
+		this.userId = userId;
 	}
 }
