@@ -14,47 +14,44 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+
+
 @RestController
 @RequestMapping("/products")
-@CrossOrigin(origins = "*")
 public class ProductController {
 
     @Autowired
     private ProductService productService;
 
     @Autowired
-    private ObjectMapper objectMapper;  // For JSON to Object conversion
+    private ObjectMapper objectMapper;
 
-    // 🟢 Admin: Add a product with image upload (multipart)
-    @PostMapping(value = "/admin/add", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    // ✅ Add product (Admin or Vendor)
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Product> addProduct(@RequestPart("product") String productJson,
                                               @RequestPart(value = "image", required = false) MultipartFile image,
                                               @RequestHeader("Authorization") String token) throws IOException {
-
-        // Convert JSON string to Product object
         Product product = objectMapper.readValue(productJson, Product.class);
-
         if (image != null && !image.isEmpty()) {
             product.setImage(image.getBytes());
         }
-
-        Product saved = productService.addProduct(product, token);
-        return ResponseEntity.ok(saved);
+        return ResponseEntity.ok(productService.addProduct(product, token));
     }
 
-    // 🟢 Admin: Update a product with optional image update
-    @PutMapping(value = "/admin/update/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> updateProduct(@PathVariable Long id,
-                                           @RequestPart("product") String productJson,
-                                           @RequestPart(value = "image", required = false) MultipartFile image,
-                                           @RequestHeader("Authorization") String token) throws IOException {
-
+    // ✅ Update product (Admin or Vendor)
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Product> updateProduct(@PathVariable Long id,
+                                                 @RequestPart("product") String productJson,
+                                                 @RequestPart(value = "image", required = false) MultipartFile image,
+                                                 @RequestHeader("Authorization") String token) throws IOException {
         Product updatedProduct = objectMapper.readValue(productJson, Product.class);
-
         if (image != null && !image.isEmpty()) {
             updatedProduct.setImage(image.getBytes());
         }
-
         Product updated = productService.updateProduct(id, updatedProduct, token);
         if (updated == null) {
             return ResponseEntity.notFound().build();
@@ -62,35 +59,21 @@ public class ProductController {
         return ResponseEntity.ok(updated);
     }
 
-    // 🟢 Admin: Delete a product
-    @DeleteMapping("/admin/delete/{id}")
+    // ✅ Delete product (Admin or Vendor)
+    @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteProduct(@PathVariable Long id,
                                                 @RequestHeader("Authorization") String token) {
         productService.deleteProduct(id, token);
         return ResponseEntity.ok("Product deleted successfully");
     }
 
-    // 🟢 User: Get all products
-    @GetMapping("/all")
+    // ✅ Get all products (public)
+    @GetMapping
     public ResponseEntity<List<Product>> getAllProducts() {
-        List<Product> products = productService.getAllProducts();
-        return ResponseEntity.ok(products);
-    }
-    
-    @GetMapping("/image/{id}")
-    public ResponseEntity<byte[]> getProductImage(@PathVariable Long id) {
-        Product product = productService.getProductById(id);
-        if (product == null || product.getImage() == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok()
-            .contentType(MediaType.IMAGE_JPEG)  // or detect actual type
-            .body(product.getImage());
+        return ResponseEntity.ok(productService.getAllProducts());
     }
 
-
-    // 🟢 User: Get product by ID
+    // ✅ Get product by ID (public)
     @GetMapping("/{id}")
     public ResponseEntity<Product> getProductById(@PathVariable Long id) {
         Product product = productService.getProductById(id);
@@ -99,18 +82,43 @@ public class ProductController {
         }
         return ResponseEntity.ok(product);
     }
-    
+
+    // ✅ Get product image (public)
+    @GetMapping("/image/{id}")
+    public ResponseEntity<byte[]> getProductImage(@PathVariable Long id) {
+        Product product = productService.getProductById(id);
+        if (product == null || product.getImage() == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_JPEG)
+                .body(product.getImage());
+    }
+
+    // ✅ Get products by subcategory (public)
     @GetMapping("/subcategory/{subCategoryId}")
     public ResponseEntity<List<Product>> getProductsBySubCategory(@PathVariable Long subCategoryId) {
         return ResponseEntity.ok(productService.getProductsBySubCategory(subCategoryId));
     }
-    
 
+    // ✅ Used by CartService/OrderService (internal DTO)
     @GetMapping("/dto/{id}")
     public ResponseEntity<ProductDTO> getProductDTOById(@PathVariable Long id) {
-        ProductDTO dto = productService.getProductDTOById(id);
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(productService.getProductDTOById(id));
     }
 
+    // ✅ Vendor: View their own products
+    @GetMapping("/vendor/my-products")
+    public ResponseEntity<List<Product>> getVendorProducts(@RequestHeader("Authorization") String token) {
+        return ResponseEntity.ok(productService.getProductsByVendor(token));
+    }
+    
+    @GetMapping("/all")
+    public ResponseEntity<List<Product>> getAllProducts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Page<Product> productPage = productService.getAllProducts(PageRequest.of(page, size));
+        return ResponseEntity.ok(productPage.getContent());
+    }
 
 }

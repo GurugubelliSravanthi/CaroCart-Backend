@@ -115,6 +115,8 @@ public class VendorService {
     public List<Vendor> getAllVendors() {
         return vendorRepository.findAll();
     }
-
-
+    
+    public Vendor getVendorByEmail(String email) {
+        return vendorRepository.findByEmail(email).orElse(null);
+    }
 }

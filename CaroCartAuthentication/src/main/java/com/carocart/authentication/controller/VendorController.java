@@ -1,7 +1,9 @@
 package com.carocart.authentication.controller;
 
+import com.carocart.authentication.dto.VendorResponseDTO;
 import com.carocart.authentication.entity.Vendor;
 import com.carocart.authentication.service.VendorService;
+import com.carocart.authentication.util.JwtUtil;
 
 import java.util.List;
 
@@ -15,6 +17,9 @@ public class VendorController {
 
     @Autowired
     private VendorService vendorService;
+    
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @PostMapping("/signup/request-otp")
     public ResponseEntity<String> requestOtp(@RequestBody Vendor vendor) {
@@ -45,6 +50,27 @@ public class VendorController {
             return ResponseEntity.badRequest().body(ex.getMessage());
         }
     }
+    
+    @GetMapping("/me")
+    public ResponseEntity<VendorResponseDTO> getCurrentVendor(@RequestHeader("Authorization") String token) {
+        String jwt = token.startsWith("Bearer ") ? token.substring(7) : token;
+        String email = jwtUtil.extractUsername(jwt);
+
+        Vendor vendor = vendorService.getVendorByEmail(email);
+        if (vendor == null || !vendor.isApproved()) {
+            return ResponseEntity.status(403).body(null);
+        }
+
+        VendorResponseDTO dto = new VendorResponseDTO();
+        dto.setId(vendor.getId());
+        dto.setFirstName(vendor.getFirstName());
+        dto.setLastName(vendor.getLastName());
+        dto.setEmail(vendor.getEmail());
+        dto.setRole("VENDOR"); // hardcoded for simplicity
+
+        return ResponseEntity.ok(dto);
+    }
+
     
     @GetMapping("/admin/vendors/all")
     public ResponseEntity<List<Vendor>> getAllVendors() {
