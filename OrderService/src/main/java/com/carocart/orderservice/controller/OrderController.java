@@ -74,4 +74,15 @@ public class OrderController {
         String authHeader = request.getHeader("Authorization");
         return ResponseEntity.ok("Authorization header = " + authHeader);
     }
+    
+    @PutMapping("/{orderId}/payment")
+    public ResponseEntity<String> updatePaymentStatus(@PathVariable Long orderId,
+                                                      @RequestParam String paymentId,
+                                                      @RequestParam String status) {
+        orderService.updatePaymentStatus(orderId, paymentId, status);
+        return ResponseEntity.ok("Payment status updated successfully.");
+    }
+    
+
+
 }
